@@ -12,7 +12,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"encoding/base32"
+	"encoding/base64"
 	"encoding/json"
 
 	"gopkg.in/telegram-bot-api.v4"
@@ -38,7 +38,7 @@ func info(link string) (*Stream, error) {
 	}
 
 	// Get info
-	id := base32.StdEncoding.EncodeToString([]byte(link))
+	id := base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString([]byte(link))
 	resp, err := http.Get("http://tubestreamer.ru/api/v1/info/" + id)
 	if err != nil {
 		return nil, err
