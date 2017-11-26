@@ -1,4 +1,20 @@
 language: go
-
+sudo: required
+services:
+    - docker
 go:
-  - 1.9.x
+    - 1.9.x
+after_success:
+    - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+    - export REPO=surik/tube_streamer_telegram
+    - export BRANCH=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then echo $TRAVIS_BRANCH; else echo $TRAVIS_PULL_REQUEST_BRANCH; fi)
+    - export TAG=`if [ "$BRANCH" == "master" ]; then echo "latest"; else echo $BRANCH; fi`
+    - docker build -f Dockerfile -t $REPO:$COMMIT .
+    - docker tag $REPO:$COMMIT $REPO:$TAG
+    - docker push $REPO
+env:
+    global:
+        - COMMIT=${TRAVIS_COMMIT::8}
+        - secure: ssmKu2dmfGjSr88Edl/Srg5yHvXYPL2SZPRD935wBXKLjk7wG7jlrQ+JiS7qMUWrGvQgMpubQBiwn1UJD52naiGH7mn4co8dTLcNQbaRi+NIr0j76bSZSz/HUG/D6AuJBCDwJ+eP94E44mx+M7wZ77Yts1cmR0Q8StmQijMhILhtqbePepp5o5lOJroISfHq6yMe/zTaHKgUrxZP199wmxJ8aJIFVjlSifIfSWc0mGYRDM83ksBlNpT3Z5N0dhTCNY40kOr8MSkgyuP1E77SQCTatAPViPZca19QPcgv3dWs80YmtVat04iTDwXl1KbL3AWPLONgPAnatL7Kwwg4J0rM/N89BfMofyhx87c6QsLZ98R1rXyMGSUB3WMyEBwqDyExDGMXBUK7rl+0TrN+pH9i7WH3dF5sKEOYyGOvo3sxbrKZOno+RKHLdSEm15rYPNix7McjoOOI8PbyHF2nM8NjXepCZBGVSYuX0qpmO3Byl3BEC0Vr8pRIMrOGgGKpbbn0VrchC9UL+FSnbVAglU82lqzUKJRh55vEcyIbezsqDhCwqxoeaybFi1/5IO7/COD0Q3XrRMT6LRIl/W4jpqQCcEtp4R4P8upcJE4LwVrHHRKOf5hgr6ZuU3CgcyZrE3bYGQwnThpUhU7CC4MWpYWffx9wlxDaUHmMmGfvztY=
+        - secure: OAxv4g+WYdML+Pfk3vjdgxLqLSHQucpiEAQaX3HA2K/zlpvtO5WkwkOF8TMNaiaMK7gyxYjsZd7OvO1wZmrq1cStSuBKwzViQSwt1xEs2LeCeCvvho9j4pX33F5AM/eFok/pj0VUAJjcRNl4kQ/FOZ1uOQr9oVjs2ZvQv3vAD9tYsAH1pqre9BzGAUa/Qfhn7yFDQMiTHklsLSp1gUVpeBLHBse+jMPghDXwe4+deqdANyVrceZKs6ZWZR2mURFrLBLQN/ggvzcglXbMSldwS8K9tJLGs54ywWBlCxSE4R7M6uaT/GbVs3D5skChHoN4ShY0vW2kSAbIeXUQ5So6900f53OshicOFdpk9eDCY7x2v1zSky6oLp0OQCbviuiqltcw7GBetkeqC79V6YBuif0epFnB1XwRk9mi6opkuVS/N6kJxXZg8AKb4CaUg2iioKEII40FFS/GGEajsEuKAPUfak9Jzh3xBGMg7Yd+l6634BzAK/nYtBtOhzjnubnheJ4mBr0cj7iOpxfD8LGWUQUovej8ahYeRoHDl0MayWfQMSc+f6NHlYGDZhxOyZlFgpns84zqY9C6h7IFVEG27d6SHER1Zx5Io1nYxU5uUp8O2V9asebbwlBr5hlexjuCD9aRQQX6uMtK9gkvHip77wO/M1PWiI6SmLzgG7TiIuY=
+        - secure: XQL/ltmD0mSnNOjmi8oEQ/u/2KEyriSx8GrF56qsnvvCvP2g+Ak/kfAdB50Q2ibrQKTu8HCEpSEHi58xVRAVZPqmpxLZFeyFHXJpIbVVUR0z/SefMAWSSN7QmXqxSEbKDsPqHTtcufny+TFQg8zjkVCoKMUMDDvBOmB8WrlaxBr9pbU9OEMssS0JVGKRP5fh4BoqkOlYsMXaxoHn8I2Qys7ya4D1CX6+mfGBLtURnCu+281CaYlMJAWnn2i20/LWm5ih1tx2UKDV/LOW1ZmAdK+g7x+ahI0LzyuVjR/lFkCgNyeiIpS2EU6vvqgyyGn5HVfaZ7x7U2EruvHOQgDlNelTM+ARnLj3hFJACW4n+u2NVX7gE2CpU20QPiWGv0XFmP4S27uJe2U9fiOO8G6nHMDD+z9DjaBDM8dnznxwFAhaT8ENTcBmiIteT1mvsK/v/z9IefRGL82X/uwzOuQ4lXBBmLHgQMltsHY50Zp8/QMMWzyF8U8bj+kfS4BQa2OqLaWCm/RP02VQO7/MOQowiJjvDczLEO9jIYYBUioaXTAIi0qQK8mWHesW3U0xmzdqzbw313mvDlla/8qr56LlQp50a5rSpT0G58iGxO9AlKElaVUrQGggmfSTzBNrbXG5UDbUbbSYkJpAxEucBXPtbUbf0aEjy4x04h6bNA7D1bM=
